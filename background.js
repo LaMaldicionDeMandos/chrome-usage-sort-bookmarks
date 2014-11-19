@@ -7,6 +7,10 @@ var processTree = function(tree) {
   bookmark.url = tree.url;
   bookmark.count = 0;
   bookmarks[tree.id] = bookmark;
+  chrome.storage.sync.get(tree.id, function(count) {
+    bookmark.count = count[tree.id] | 0;
+    console.log("bookmark: {id: " + bookmark.id + ", count: " + bookmark.count + "}");
+  });
 };
 
 var acumulateTrees = function(trees) {
@@ -22,5 +26,7 @@ var initBookmarks = function(roots) {
 };
 
 chrome.windows.onCreated.addListener(function() {
+//  chrome.storage.sync.set({'0':12}, function() {
+//  });
   chrome.bookmarks.getTree(initBookmarks);
 });
