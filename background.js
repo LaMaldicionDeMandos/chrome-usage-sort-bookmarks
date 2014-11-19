@@ -1,5 +1,12 @@
+var bookmarks = {};
 var processTree = function(tree) {
 	console.log('Bookmarks: ' + tree.id + ' ' + tree.index + ' ' + tree.title);
+  var bookmark = {};
+  bookmark.id = tree.id;
+  bookmark.parentId = tree.parentId;
+  bookmark.url = tree.url;
+  bookmark.count = 0;
+  bookmarks[tree.id] = bookmark;
 };
 
 var acumulateTrees = function(trees) {
@@ -9,10 +16,11 @@ var acumulateTrees = function(trees) {
   	}
 };
 
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-  if (changeInfo.status == 'loading') {
-  	console.log('tabs.onUpdated -- window: ' + tab.windowId + ' tab: ' + tab.id +
-      ' title: ' + tab.title + ' index ' + tab.index + ' url ' + tab.url);  	
-  	chrome.bookmarks.getTree(acumulateTrees);
-  }
+var initBookmarks = function(roots) {
+  acumulateTrees(roots);
+  bookmarks = roots;
+};
+
+chrome.windows.onCreated.addListener(function() {
+  chrome.bookmarks.getTree(initBookmarks);
 });
