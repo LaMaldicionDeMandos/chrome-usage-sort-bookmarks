@@ -7,10 +7,10 @@ var processTree = function(tree) {
   bookmark.index = tree.index;
   bookmark.url = tree.url;
   bookmark.count = 0;
-  bookmarks[tree.id] = bookmark;
-  chrome.storage.sync.get(tree.id, function(count) {
-    bookmark.count = count[tree.id] | 0;
-    console.log("bookmark: {id: " + bookmark.id + ", count: " + bookmark.count + "}");
+  bookmarks[tree.url] = bookmark;
+  chrome.storage.sync.get(tree.url, function(count) {
+    bookmark.count = count[tree.url] | 0;
+    console.log("bookmark: {url: " + bookmark.url + ", count: " + bookmark.count + "}");
   });
 };
 
@@ -23,23 +23,17 @@ var acumulateTrees = function(trees) {
 
 var initBookmarks = function(roots) {
   acumulateTrees(roots);
-  bookmarks = roots;
 };
 
 var findBookmarkByUrl = function(url) {
-  for (id in bookmarks) {
-    if (bookmarks[id].url == url) {
-      return bookmarks[id];
-    }
-  }
-  return null;
+  return bookmarks[url];
 };
 
 var findChildren = function(parentId) {
   var children = [];
-  for (id in bookmarks) {
-    if (bookmarks[id].parentId == parentId) {
-      children.push(bookmarks[id]);
+  for (url in bookmarks) {
+    if (bookmarks[url].parentId == parentId) {
+      children.push(bookmarks[url]);
     }
   }
   return children;
@@ -56,10 +50,10 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     console.log("Finding: " + url)
     bookmark = findBookmarkByUrl(url);
     if (bookmark != undefined) {
-      console.log("Found bookmark: " + bookmark.id);
+      console.log("Found bookmark: " + bookmark.url);
       bookmark.count++;
       var dto = {};
-      dto[bookmark.id] = bookmark.count;
+      dto[bookmark.url] = bookmark.count;
       chrome.storage.sync.set(dto, function() {
         console.log("New bookmark count: " + bookmark.count);
         var books = findChildren(bookmark.parentId);
