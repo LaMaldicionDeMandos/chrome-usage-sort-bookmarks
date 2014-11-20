@@ -5,6 +5,7 @@ var processTree = function(tree) {
   bookmark.id = tree.id;
   bookmark.parentId = tree.parentId;
   bookmark.index = tree.index;
+  bookmark.name = tree.title;
   bookmark.url = tree.url;
   bookmark.count = 0;
   bookmarks[tree.url] = bookmark;
@@ -50,7 +51,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     console.log("Finding: " + url)
     bookmark = findBookmarkByUrl(url);
     if (bookmark != undefined) {
-      console.log("Found bookmark: " + bookmark.url);
+      console.log("Found bookmark: " + bookmark.name);
       bookmark.count++;
       var dto = {};
       dto[bookmark.url] = bookmark.count;
@@ -63,9 +64,11 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
           return (a.index <= b.index) ? -1 : 1;
         });
         for (var index = 0; index < books.length;index++) {
-          if (books[index].index != index) {
-            chrome.bookmarks.move(books[index].id, {'index':index});
+          if (books[index].id == bookmark.id && index != bookmark.index) {
+            chrome.bookmarks.move(bookmark.id, {'index':index});
+            console.log("Change bookmark: " + bookmark.name + " index: " + index);
             books[index].index = index;
+            return;
           }
         }
       });
