@@ -61,7 +61,7 @@ Bookmark.createEmptyCounts = function() {
   return [Bookmark.createEmptyCount()];
 };
 
-var bookmarks = {};
+var bookmarks = undefined;
 var processTree = function(tree) {
 	console.log('Bookmarks: ' + tree.id + ' ' + tree.index + ' ' + tree.title + " url: " + tree.url);
   if (tree.url) {
@@ -82,6 +82,7 @@ var acumulateTrees = function(trees) {
 };
 
 var initBookmarks = function(roots) {
+  bookmarks = {};
   acumulateTrees(roots);
 };
 
@@ -124,6 +125,9 @@ chrome.runtime.onStartup.addListener(function() {
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+  if (bookmarks == undefined) {
+    chrome.bookmarks.getTree(initBookmarks);  
+  }
   if (changeInfo.status == 'loading' && changeInfo.url != undefined) {
     var url = changeInfo.url;
     console.log("Finding: " + url)
