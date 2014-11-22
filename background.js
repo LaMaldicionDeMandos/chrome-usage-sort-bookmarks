@@ -71,6 +71,10 @@ var processTree = function(tree) {
       bookmark.counts = values != undefined ? values[tree.url] || Bookmark.createEmptyCounts() : Bookmark.createEmptyCounts();
       console.log("bookmark: {url: " + bookmark.url + ", count: " + bookmark.count() + "}");
     });
+    if (updatePending != undefined && tree.url == updatePending.property.url) {
+      updatePending.update(updatePending.property);
+      updatePending = undefined;
+    } 
   }
 };
 
@@ -116,6 +120,20 @@ var calculateBookmarkPosition = function(bookmark) {
   }
 };
 
+var updatePending = undefined;
+
+var update = function(changeInfo) {
+  if (changeInfo.status == 'loading' && changeInfo.url != undefined) {
+      var url = changeInfo.url;
+      console.log("Finding: " + url)
+      var bookmark = findBookmarkByUrl(url);
+      if (bookmark != undefined) {
+        console.log("Found bookmark: " + bookmark.name);
+        bookmark.use(calculateBookmarkPosition);
+      }
+  }
+};
+
 chrome.runtime.onInstalled.addListener(function() {
   chrome.bookmarks.getTree(initBookmarks);
 });
@@ -126,15 +144,10 @@ chrome.runtime.onStartup.addListener(function() {
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
   if (bookmarks == undefined) {
+    updatePending = {property: changeInfo, update: update};
     chrome.bookmarks.getTree(initBookmarks);  
+  } else {
+    update(changeInfo);
   }
-  if (changeInfo.status == 'loading' && changeInfo.url != undefined) {
-    var url = changeInfo.url;
-    console.log("Finding: " + url)
-    bookmark = findBookmarkByUrl(url);
-    if (bookmark != undefined) {
-      console.log("Found bookmark: " + bookmark.name);
-      bookmark.use(calculateBookmarkPosition);
-    }
-  }
+  
 });
