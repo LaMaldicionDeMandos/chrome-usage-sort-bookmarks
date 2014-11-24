@@ -38,8 +38,10 @@ function Bookmark(bookmarkNode, counts) {
     var dto = {};
     var self = this;
     dto[this.url] = this.counts;
-    chrome.storage.sync.set(dto, function() {
-      callback(self);
+    chrome.storage.sync.remove(this.url, function() {
+      chrome.storage.sync.set(dto, function() {
+        callback(self);
+      });
     });
   };
 
